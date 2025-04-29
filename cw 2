@@ -1,0 +1,127 @@
+#include <iostream>
+#include <fstream>
+#include <vector>
+
+using namespace std;
+
+struct Employee {
+    int id;
+    string name;
+    string designation;
+    int years_of_service;
+};
+
+void writeDummyData(const string& filename) {
+    vector<Employee> employees = {
+        {1, "John Doe", "Manager", 5},
+        {2, "Jane Smith", "Developer", 3},
+        {3, "Bill Gates", "Manager", 1},
+        {4, "Elon Musk", "Manager", 3},
+        {5, "Ada Lovelace", "Developer", 2}
+    };
+    ofstream file(filename);
+    for (int i = 0; i < employees.size(); ++i) {
+        file << employees[i].id << "," << employees[i].name << "," << employees[i].designation << "," << employees[i].years_of_service << endl;
+    }
+    file.close();
+}
+
+vector<string> split(const string& str, char delimiter) {
+    vector<string> tokens;
+    int start = 0;
+    for (int i = 0; i < str.size(); ++i) {
+        if (str[i] == delimiter) {
+            tokens.push_back(str.substr(start, i - start));
+            start = i + 1;
+        }
+    }
+    tokens.push_back(str.substr(start));
+    return tokens;
+}
+
+vector<Employee> readData(const string& filename) {
+    vector<Employee> employees;
+    ifstream file(filename);
+    string line;
+    while (getline(file, line)) {
+        vector<string> tokens = split(line, ',');
+        Employee emp;
+        emp.id = stoi(tokens[0]);
+        emp.name = tokens[1];
+        emp.designation = tokens[2];
+        emp.years_of_service = stoi(tokens[3]);
+        employees.push_back(emp);
+    }
+    file.close();
+    return employees;
+}
+
+void writeData(const string& filename, const vector<Employee>& employees) {
+    ofstream file(filename);
+    for (int i = 0; i < employees.size(); ++i) {
+        file << employees[i].id << "," << employees[i].name << "," << employees[i].designation << "," << employees[i].years_of_service << endl;
+    }
+    file.close();
+}
+
+vector<Employee> findManagersWithAtLeastTwoYears(const vector<Employee>& employees) {
+    vector<Employee> result;
+    for (int i = 0; i < employees.size(); ++i) {
+        if (employees[i].designation == "Manager" && employees[i].years_of_service >= 2) {
+            result.push_back(employees[i]);
+        }
+    }
+    return result;
+}
+
+vector<Employee> deleteExceptManagersWithAtLeastTwoYears(const vector<Employee>& employees, const vector<Employee>& managers) {
+    vector<Employee> result;
+    for (int i = 0; i < employees.size(); ++i) {
+        bool found = false;
+        for (int j = 0; j < managers.size(); ++j) {
+            if (employees[i].id == managers[j].id) {
+                found = true;
+                break;
+            }
+        }
+        if (found) {
+            result.push_back(employees[i]);
+        }
+    }
+    return result;
+}
+
+vector<Employee> incrementIdsAndYears(const vector<Employee>& employees) {
+    vector<Employee> updatedEmployees;
+    int newId = employees[employees.size() - 1].id + 1;
+    for (int i = 0; i < employees.size(); ++i) {
+        Employee updatedEmp = employees[i];
+        updatedEmp.id = newId++;
+        updatedEmp.years_of_service += 1;
+        updatedEmployees.push_back(updatedEmp);
+    }
+    return updatedEmployees;
+}
+
+int main() {
+    string filename = "employees.txt";
+    writeDummyData(filename);
+    vector<Employee> employees = readData(filename);
+    vector<Employee> managers = findManagersWithAtLeastTwoYears(employees);
+    cout << "Managers with at least 2 years of service:" << endl;
+    for (int i = 0; i < managers.size(); ++i) {
+        cout << managers[i].id << ", " << managers[i].name << ", " << managers[i].designation << ", " << managers[i].years_of_service << endl;
+    }
+    vector<Employee> filteredData = deleteExceptManagersWithAtLeastTwoYears(employees, managers);
+    cout << "\nRemaining data (after delete):" << endl;
+    for (int i = 0; i < filteredData.size(); ++i) {
+        cout << filteredData[i].id << ", " << filteredData[i].name << ", " << filteredData[i].designation << ", " << filteredData[i].years_of_service << endl;
+    }
+    vector<Employee> updatedData = incrementIdsAndYears(managers);
+    cout << "\nUpdated data with incremented IDs and years:" << endl;
+    for (int i = 0; i < updatedData.size(); ++i) {
+        cout << updatedData[i].id << ", " << updatedData[i].name << ", " << updatedData[i].designation << ", " << updatedData[i].years_of_service << endl;
+    }
+    writeData(filename, updatedData);
+    return 0;
+}
