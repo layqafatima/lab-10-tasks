@@ -1,0 +1,55 @@
+#include <iostream>
+#include <fstream>
+#include <string>
+
+class Logger {
+public:
+    Logger(const std::string& baseFilename, size_t maxSize)
+        : baseFilename(baseFilename), maxSize(maxSize), currentFileIndex(1) {
+        openNewLogFile();
+    }
+
+    ~Logger() {
+        if (logFile.is_open()) {
+            logFile.close();
+        }
+    }
+
+    void log(const std::string& message) {
+        if (logFile.tellp() >= maxSize) {
+            rotateLogFile();
+        }
+        logFile << message << std::endl;
+    }
+
+private:
+    void openNewLogFile() {
+        std::string filename = baseFilename + std::to_string(currentFileIndex) + ".txt";
+        logFile.open(filename, std::ios::out | std::ios::app);
+        if (!logFile.is_open()) {
+            std::cerr << "Error opening log file: " << filename << std::endl;
+            exit(1);
+        }
+    }
+
+    void rotateLogFile() {
+        if (logFile.is_open()) {
+            logFile.close();
+        }
+        currentFileIndex++;
+        openNewLogFile();
+    }
+
+    std::string baseFilename;
+    size_t maxSize;
+    size_t currentFileIndex;
+    std::ofstream logFile;
+};
+
+int main() {
+    Logger logger("log", 1 * 1024 * 1024);
+    for (int i = 0; i < 1000; ++i) {
+        logger.log("Log message #" + std::to_string(i));
+    }
+    return 0;
+}
