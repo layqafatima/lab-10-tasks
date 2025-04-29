@@ -1,0 +1,63 @@
+#include <iostream>
+#include <fstream>
+#include <vector>
+using namespace std;
+
+vector<string> split(const string& line, char delimiter) {
+    vector<string> tokens;
+    string token = "";
+    for (int i = 0; i < line.length(); ++i) {
+        if (line[i] == delimiter) {
+            tokens.push_back(token);
+            token = ""; // reset instead of clear()
+        } else {
+            token += line[i];
+        }
+    }
+    tokens.push_back(token);
+    return tokens;
+}
+
+int main() {
+    vector<string> user_ids;
+    string line;
+
+    ifstream users("users.txt");
+    while (getline(users, line)) {
+        vector<string> parts = split(line, ',');
+        if (parts.size() >= 2 && parts[1] == "Linus") {
+            user_ids.push_back(parts[0]);
+        }
+    }
+    users.close();
+
+    vector<string> product_ids;
+    ifstream orders("orders.txt");
+    while (getline(orders, line)) {
+        vector<string> parts = split(line, ',');
+        if (parts.size() >= 3) {
+            for (int i = 0; i < user_ids.size(); ++i) {
+                if (parts[1] == user_ids[i]) {
+                    product_ids.push_back(parts[2]);
+                }
+            }
+        }
+    }
+    orders.close();
+
+    ifstream products("products.txt");
+    while (getline(products, line)) {
+        vector<string> parts = split(line, ',');
+        if (parts.size() >= 2) {
+            for (int i = 0; i < product_ids.size(); ++i) {
+                if (parts[0] == product_ids[i]) {
+                    cout << parts[1] << endl;
+                }
+            }
+        }
+    }
+    products.close();
+
+    return 0;
+}
+
